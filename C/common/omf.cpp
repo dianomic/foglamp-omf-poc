@@ -12,7 +12,6 @@
 #include <string>
 #include <typeinfo>
 #include <omf.h>
-#include <logger.h>
 
 using namespace std;
 
