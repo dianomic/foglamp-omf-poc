@@ -65,7 +65,8 @@ class DatapointValue {
 		{
 			if (m_type == T_STRING)
 			{
-				delete m_value.str;
+				// This gives a double free
+				//delete m_value.str;
 			}
 		};
 		/**
