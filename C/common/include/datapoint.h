@@ -65,10 +65,36 @@ class DatapointValue {
 		{
 			if (m_type == T_STRING)
 			{
-				// This gives a double free
-				//delete m_value.str;
+				delete m_value.str;
 			}
 		};
+
+		/**
+		 * Assignment Operator
+		 */
+		DatapointValue& operator=(const DatapointValue& rhs)
+		{
+			if (m_type == T_STRING)
+			{
+				// Remove previous value
+				delete m_value.str;
+			}
+
+			m_type = rhs.m_type;
+
+			switch (m_type)
+			{
+			case T_STRING:
+				m_value.str = new std::string(*(rhs.m_value.str));
+				break;
+			default:
+				m_value = rhs.m_value;
+				break;
+			}
+
+			return *this;
+		};
+
 		/**
 		 * Return the value as a string
 		 */
