@@ -8,9 +8,7 @@
  *
  * Author: Massimiliano Pinto, Mark Riddoch
  */
-
-#include <http_sender.h>
-#include <client_http.hpp>
+#include <simple_http.h>
 
 using namespace std;
 
@@ -20,10 +18,9 @@ using HttpClient = SimpleWeb::Client<SimpleWeb::HTTP>;
 /**
  * Constructor
  */
-SimpleHttp::SimpleHttp(const string& host_port)
+SimpleHttp::SimpleHttp(const string& host_port) : HttpSender(), m_host_port(host_port)
 {
 	m_sender = new HttpClient(host_port);
-	super();
 }
 
 /**

@@ -15,7 +15,7 @@ using namespace std;
 /**
  * Constructor
  */
-HttpSender::HttpSender(const string& host_port) : m_host_port(host_port)
+HttpSender::HttpSender()
 {
 }
 

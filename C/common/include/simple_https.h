@@ -1,5 +1,5 @@
-#ifndef _HTTP_SENDER_H
-#define _HTTP_SENDER_H_H
+#ifndef _SIMPLE_HTTPS_H
+#define _SIMPLE_HTTPS_H
 /*
  * FogLAMP HTTP Sender wrapper.
  *
@@ -7,12 +7,15 @@
  *
  * Released under the Apache 2.0 Licence
  *
- * Author: Massimiliano Pinto
+ * Author: Massimiliano Pinto, Mark Riddoch
  */
 
 #include <string>
 #include <vector>
 #include <http_sender.h>
+#include <client_https.hpp>
+
+using HttpsClient = SimpleWeb::Client<SimpleWeb::HTTPS>;
 
 class SimpleHttps: public HttpSender
 {

@@ -1,5 +1,5 @@
 #ifndef _HTTP_SENDER_H
-#define _HTTP_SENDER_H_H
+#define _HTTP_SENDER_H
 /*
  * FogLAMP HTTP Sender wrapper.
  *
@@ -22,9 +22,8 @@ class HttpSender
 	public:
 		/**
 		 * Constructor:
-		 * pass host:port, HTTP headers and POST/PUT payload.
 		 */
-		HttpSender(const std::string& host_port);
+		HttpSender();
 
 		// Destructor
 		~HttpSender();
@@ -36,8 +35,6 @@ class HttpSender
 				const std::string& path = std::string(HTTP_SENDER_DEFAULT_PATH),
 				const std::vector<std::pair<std::string, std::string>>& headers = {},
 				const std::string& payload = std::string()) = 0;
-	protected:
-		std::string	m_host_port;
 		
 };
 

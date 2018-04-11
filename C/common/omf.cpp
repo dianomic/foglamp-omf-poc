@@ -55,7 +55,7 @@ const string OMFData::OMFdataVal() const
 /**
  * OMF constructor
  */
-OMF::OMF(const HttpSender& sender,
+OMF::OMF(HttpSender& sender,
 const string& url,
 	 const string& id,
 	 const string& token) :
@@ -117,7 +117,7 @@ int OMF::handleTypes(const Reading& row) const
 	// and 'typeStaticData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
 	// TODO: save typeStaticData and send it once
-	res = m_sender->sendRequest("POST", "/ingress/messages", resStaticData, typeStaticData);
+	res = m_sender.sendRequest("POST", "/ingress/messages", resStaticData, typeStaticData);
 	if (res != 200 && res != 204)
 	{
 		return 0;
@@ -132,7 +132,7 @@ int OMF::handleTypes(const Reading& row) const
 	// and 'typeLinkData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
 	// TODO: save typeLinkData and send it once
-	res = m_sender->sendRequest("POST", "/ingress/messages", resLinkData, typeLinkData);
+	res = m_sender.sendRequest("POST", "/ingress/messages", resLinkData, typeLinkData);
 
 	if (res != 200 && res != 204)
 	{
@@ -192,7 +192,7 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings)
 	// Build an HTTPS POST with 'redingData headers
 	// and 'allReadings' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	int res = m_sender->sendRequest("POST", "/ingress/messages", readingData, jsonData.str());
+	int res = m_sender.sendRequest("POST", "/ingress/messages", readingData, jsonData.str());
 	if (res != 200 && res != 204)
 	{
 		return 0;
@@ -241,7 +241,7 @@ uint32_t OMF::sendToServer(const vector<Reading>& readings)
 
 	// Build an HTTPS POST with 'readingData headers and 'allReadings' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	int res = m_sender->sendRequest("POST", "/ingress/messages", readingData, jsonData.str());
+	int res = m_sender.sendRequest("POST", "/ingress/messages", readingData, jsonData.str());
 
 	if (res != 200 && res != 204)
 	{

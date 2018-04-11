@@ -49,10 +49,10 @@ int main(void)
 	// Add it to the vector
 	readings.push_back(office);
 
-	SimpleHttps sender("192.168.1.157:5460");
+	SimpleHttps sender("192.168.0.132:5460");
 
 	// Instantiate OMF Class with URL, OMF_TYTPE_ID and producerToken
-	OMF omfReadings = OMF(sender, "https://192.168.1.157:5460/ingress/messages", "8008", "omf_translator_8008");
+	OMF omfReadings = OMF(sender, "https://192.168.0.132:5460/ingress/messages", "8008", "omf_translator_8008");
 
 	/**
 	 * Send the readings vector to PI Server
