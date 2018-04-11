@@ -12,32 +12,30 @@
 
 #include <string>
 #include <vector>
+#include <http_sender.h>
 
-#define HTTP_SENDER_USER_AGENT     "FogLAMP http sender"
-#define HTTP_SENDER_DEFAULT_METHOD "GET"
-#define HTTP_SENDER_DEFAULT_PATH   "/"
-
-class HttpSender
+class SimpleHttp: public HttpSender
 {
 	public:
 		/**
 		 * Constructor:
-		 * pass host:port, HTTP headers and POST/PUT payload.
+		 * pass schema, host:port, HTTP headers and POST/PUT payload.
 		 */
-		HttpSender(const std::string& host_port);
+		SimpleHttp(const std::string& host_port);
 
 		// Destructor
-		~HttpSender();
+		~SimpleHttp();
 
 		/**
 		 * HTTP(S) request: pass method and path, HTTP headers and POST/PUT payload.
 		 */
-		virtual int sendRequest(const std::string& method = std::string(HTTP_SENDER_DEFAULT_METHOD),
+		int sendRequest(const std::string& method = std::string(HTTP_SENDER_DEFAULT_METHOD),
 				const std::string& path = std::string(HTTP_SENDER_DEFAULT_PATH),
 				const std::vector<std::pair<std::string, std::string>>& headers = {},
-				const std::string& payload = std::string()) = 0;
-	protected:
+				const std::string& payload = std::string());
+	private:
 		std::string	m_host_port;
+		HttpClient	*m_sender;
 		
 };
 
