@@ -1,5 +1,5 @@
 #ifndef _HTTP_SENDER_H
-#define _HTTP_SENDER_H_H
+#define _HTTP_SENDER_H
 /*
  * FogLAMP HTTP Sender wrapper.
  *
@@ -17,16 +17,13 @@
 #define HTTP_SENDER_DEFAULT_METHOD "GET"
 #define HTTP_SENDER_DEFAULT_PATH   "/"
 
-typedef void HTTP_SENDER;
-
 class HttpSender
 {
 	public:
 		/**
 		 * Constructor:
-		 * pass schema, host:port, HTTP headers and POST/PUT payload.
 		 */
-		HttpSender(const std::string& schema, const std::string& host_port);
+		HttpSender();
 
 		// Destructor
 		~HttpSender();
@@ -34,14 +31,10 @@ class HttpSender
 		/**
 		 * HTTP(S) request: pass method and path, HTTP headers and POST/PUT payload.
 		 */
-		int sendRequest(const std::string& method = std::string(HTTP_SENDER_DEFAULT_METHOD),
+		virtual int sendRequest(const std::string& method = std::string(HTTP_SENDER_DEFAULT_METHOD),
 				const std::string& path = std::string(HTTP_SENDER_DEFAULT_PATH),
 				const std::vector<std::pair<std::string, std::string>>& headers = {},
-				const std::string& payload = std::string()) noexcept;
-	private:
-		std::string	m_host_port;
-		HTTP_SENDER	*m_sender;
-		bool		is_https;
+				const std::string& payload = std::string()) = 0;
 		
 };
 

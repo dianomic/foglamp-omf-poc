@@ -28,7 +28,8 @@ class OMF
 		 * Constructor:
 		 * pass server URL, OMF_type_id and producerToken.
 		 */
-		OMF(const std::string& url,
+		OMF(HttpSender& sender,
+                    const std::string& url,
 		    const std::string& typeId,
 		    const std::string& producerToken);
 
@@ -93,7 +94,7 @@ class OMF
 							    OMF_TYPE_INTEGER,
 							    OMF_TYPE_FLOAT };
 		// HTTP Sender interface
-		HttpSender	*m_sender;
+		HttpSender&		m_sender;
 };
 
 /**
