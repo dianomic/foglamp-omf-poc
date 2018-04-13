@@ -49,16 +49,34 @@ int main(void)
 	// Add it to the vector
 	readings.push_back(office);
 
-	SimpleHttps sender("192.168.0.132:5460");
+	// Add new readings
+	val = 876;
+	value = DatapointValue(val);
+	readings.push_back(Reading("home", new Datapoint("power", value)));
 
-	// Instantiate OMF Class with URL, OMF_TYTPE_ID and producerToken
-	OMF omfReadings = OMF(sender, "https://192.168.0.132:5460/ingress/messages", "8008", "omf_translator_8008");
+	fVal = 32.7;
+        value = DatapointValue(fVal);
+	readings.push_back(Reading("box", new Datapoint("temp", value)));
+
+	// Instantiate an HTTPS handler for "Hostname : port"
+	SimpleHttps sender("192.168.1.157:5460");
+
+	// Instantiate the OMF Class with URL path, OMF_TYTPE_ID and producerToken
+	OMF omfReadings = OMF(sender, "/ingress/messages", "8421", "omf_translator_8421");
+
+	/**
+	 * We can pass the auth token to the new version of PI server connector relay	
+	 * OMF omfReadings = OMF(sender, "/ingress/messages", "9221",
+	 *			 "uid=UUID&sig=BASE64_SIG");
+	 */
 
 	/**
 	 * Send the readings vector to PI Server
+	 * pass false if we want to send data types for each reading.
 	 */
 
 	cerr << "Sent readings data: " << omfReadings.sendToServer(readings) << endl;
+	//cerr << "Sent readings data: " << omfReadings.sendToServer(readings, false) << endl;
 
 	return 0;
 }

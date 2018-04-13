@@ -11,6 +11,7 @@
  */
 #include <string>
 #include <vector>
+#include <map>
 #include <reading.h>
 #include <http_sender.h>
 
@@ -26,10 +27,10 @@ class OMF
         public:
 		/**
 		 * Constructor:
-		 * pass server URL, OMF_type_id and producerToken.
+		 * pass server URL path, OMF_type_id and producerToken.
 		 */
 		OMF(HttpSender& sender,
-                    const std::string& url,
+                    const std::string& path,
 		    const std::string& typeId,
 		    const std::string& producerToken);
 
@@ -37,16 +38,22 @@ class OMF
 		 * Send data to PI Server passing a vector of readings.
 		 *
 		 * Data sending is composed by a few phases
-		 * handled by private methods:
+		 * handled by private methods.
+		 *
+		 * Note: DataTypes are sent only once by using
+		 * an in memory key map, being the key = assetName + typeId.
+		 * Passing false to skipSentDataTypes changes the logic.
 		 *
 		 * Returns the number of processed readings.
 		 */
 
 		// Method with vector of readings
-		uint32_t sendToServer(const std::vector<Reading>& readings);
+		uint32_t sendToServer(const std::vector<Reading>& readings,
+				      bool skipSentDataTypes = true);
 
 		// Method with vector of reading pointers
-		uint32_t sendToServer(const std::vector<Reading *> readings);
+		uint32_t sendToServer(const std::vector<Reading *> readings,
+				      bool skipSentDataTypes = true);
 
 		// Destructor
 		~OMF();
@@ -82,13 +89,21 @@ class OMF
 		void setAssetTypeTag(const std::string& assetName,
 				     const std::string& tagName,
 				     std::string& data) const;
-		// Send or caches OMF data types
-		int handleTypes(const Reading& row) const;
+		// Send OMF data types
+		int handleDataTypes(const Reading& row) const;
+
+		// Get saved dataType
+		bool getCreatedTypes(std::string& assetName);
+
+		// Set saved dataType
+		bool setCreatedTypes(std::string& assetName);
 
         private:
-		const std::string	m_serverURL;
-		const std::string	m_tokenId;
-		const std::string	m_producerToken;
+		const std::string		m_path;
+		const std::string		m_typeId;
+		const std::string		m_producerToken;
+		std::map<std::string, bool>	m_createdTypes;
+
 		// Vector with OMF_TYPES
 		const std::vector<std::string> omfTypes = { OMF_TYPE_STRING,
 							    OMF_TYPE_INTEGER,
