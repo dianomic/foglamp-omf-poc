@@ -110,6 +110,7 @@ class OMF
 							    OMF_TYPE_FLOAT };
 		// HTTP Sender interface
 		HttpSender&		m_sender;
+		bool			m_lastError;
 };
 
 /**
