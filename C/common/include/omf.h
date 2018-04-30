@@ -34,6 +34,9 @@ class OMF
 		    const std::string& typeId,
 		    const std::string& producerToken);
 
+		// Destructor
+		~OMF();
+
 		/**
 		 * Send data to PI Server passing a vector of readings.
 		 *
@@ -55,8 +58,13 @@ class OMF
 		uint32_t sendToServer(const std::vector<Reading *> readings,
 				      bool skipSentDataTypes = true);
 
-		// Destructor
-		~OMF();
+		// Send a single reading
+		uint32_t sendToServer(const Reading& reading,
+				      bool skipSentDataTypes = true);
+
+		// Send a single reading pointer
+		uint32_t sendToServer(const Reading* reading,
+				      bool skipSentDataTypes = true);
 
 	private:
 		/**
@@ -89,14 +97,19 @@ class OMF
 		void setAssetTypeTag(const std::string& assetName,
 				     const std::string& tagName,
 				     std::string& data) const;
+
+		// Create the OMF data types if needed
+		bool handleDataTypes(const Reading& row,
+				     bool skipSendingTypes);
+
 		// Send OMF data types
-		int handleDataTypes(const Reading& row) const;
+		bool sendDataTypes(const Reading& row) const;
 
 		// Get saved dataType
-		bool getCreatedTypes(std::string& assetName);
+		bool getCreatedTypes(const std::string& key);
 
 		// Set saved dataType
-		bool setCreatedTypes(std::string& assetName);
+		bool setCreatedTypes(const std::string& key);
 
         private:
 		const std::string		m_path;
@@ -109,7 +122,7 @@ class OMF
 							    OMF_TYPE_INTEGER,
 							    OMF_TYPE_FLOAT };
 		// HTTP Sender interface
-		HttpSender&		m_sender;
+		HttpSender&			m_sender;
 };
 
 /**

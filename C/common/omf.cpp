@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include <string>
-#include <typeinfo>
 #include <omf.h>
 
 using namespace std;
@@ -72,9 +71,13 @@ OMF::~OMF()
 }
 
 /**
- * Creates and send data type messages for a Reading data
+ * Sends all the data type messages for a Reading data row
+ *
+ * @param row    The current Reading data row
+ * @return       True is all data types have been sent (HTTP 200/204 OK)
+ *               False when first error occurs.
  */
-int OMF::handleDataTypes(const Reading& row) const
+bool OMF::sendDataTypes(const Reading& row) const
 {
 	int res;
 
@@ -90,7 +93,7 @@ int OMF::handleDataTypes(const Reading& row) const
 	if (res != 200 && res != 204)
 	{
 		cerr << "Server status code " << res << " for dataType message 'Type'" << endl;
-		return 0;
+		return false;
 	}
 
 	// Create header for Container
@@ -101,12 +104,11 @@ int OMF::handleDataTypes(const Reading& row) const
 	// Build an HTTPS POST with 'resContainer' headers
 	// and 'typeContainer' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	// TODO: save typeContainer and send it once
 	res = m_sender.sendRequest("POST", m_path, resContainer, typeContainer);
 	if (res != 200 && res != 204)
 	{
 		cerr << "Server status code " << res << " for dataType message 'Container'" << endl;
-		return 0;
+		return false;
 	}
 
 	// Create header for Static data
@@ -117,12 +119,11 @@ int OMF::handleDataTypes(const Reading& row) const
 	// Build an HTTPS POST with 'resStaticData' headers
 	// and 'typeStaticData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	// TODO: save typeStaticData and send it once
 	res = m_sender.sendRequest("POST", m_path, resStaticData, typeStaticData);
 	if (res != 200 && res != 204)
 	{
 		cerr << "Server status code " << res << " for dataType message 'Data' (static)" << endl;
-		return 0;
+		return false;
 	}
 
 	// Create header for Link data
@@ -133,25 +134,26 @@ int OMF::handleDataTypes(const Reading& row) const
 	// Build an HTTPS POST with 'resLinkData' headers
 	// and 'typeLinkData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	// TODO: save typeLinkData and send it once
 	res = m_sender.sendRequest("POST", m_path, resLinkData, typeLinkData);
 
 	if (res != 200 && res != 204)
 	{
 		cerr << "Server status code " << res << " for dataType message 'Data' (lynk)" << endl;
-		return 0;
+		return false;
 	}
 	else
 	{
-		return 1;
+		// All data types sent: success
+		return true;
 	}
 }
 
 /**
  * Send all the readings to the PI Server
  *
- * @param readings    A vector of readings data pointers
- * @return            != on success, 0 otherwise
+ * @param readings            A vector of readings data pointers
+ * @param skipSendDataTypes   Send datatypes only once (default is true)
+ * @return                    != on success, 0 otherwise
  */
 uint32_t OMF::sendToServer(const vector<Reading *> readings,
 			   bool skipSentDataTypes)
@@ -171,32 +173,11 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 						    elem != readings.end();
 						    ++elem)
 	{
-		bool sendDataTypes;
-
-		// Create the key for dataTypes sending once
-		string key((**elem).getAssetName() + m_typeId);
-
-		sendDataTypes = (skipSentDataTypes == true) ?
-				 // Send if not already sent
-				 !OMF::getCreatedTypes(key) :
-				 // Always send types
-				 true;
-
-		// Handle the data types of the current reading
-		if (sendDataTypes && !OMF::handleDataTypes(**elem))
+		if (!OMF::handleDataTypes(**elem, skipSentDataTypes))
 		{
 			// Failure
 			return 0;
 		}
-
-		// We have sent types, we might save this.
-		if (skipSentDataTypes && sendDataTypes)
-		{
-			// Save datatypes key
-			OMF::setCreatedTypes(key);
-		}
-
-		cerr << "dataTypes for key [" << key << "]" << (sendDataTypes ? " have been sent." : " already sent.") << endl;
 
 		// Add into JSON string the OMF transformed Reading data
 		jsonData << OMFData(**elem).OMFdataVal() << (elem < (readings.end() -1 ) ? ", " : "");
@@ -230,8 +211,9 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 /**
  * Send all the readings to the PI Server
  *
- * @param readings    A vector of readings data
- * @return            != on success, 0 otherwise
+ * @param readings            A vector of readings data
+ * @param skipSendDataTypes   Send datatypes only once (default is true)
+ * @return                    != on success, 0 otherwise
  */
 uint32_t OMF::sendToServer(const vector<Reading>& readings,
 			   bool skipSentDataTypes)
@@ -250,32 +232,11 @@ uint32_t OMF::sendToServer(const vector<Reading>& readings,
 						    elem != readings.end();
 						    ++elem)
 	{
-		bool sendDataTypes;
-
-		// Create the key for dataTypes sending once
-		string key((*elem).getAssetName() + m_typeId);
-
-		sendDataTypes = (skipSentDataTypes == true) ?
-				 // Send if not already sent
-				 !OMF::getCreatedTypes(key) :
-				 // Always send types
-				 true;
-
-		// Handle the data types of the current reading
-		if (sendDataTypes && !OMF::handleDataTypes(*elem))
+		if (!OMF::handleDataTypes(*elem, skipSentDataTypes))
 		{
 			// Failure
 			return 0;
 		}
-
-		// We have sent types, we might save this.
-		if (skipSentDataTypes && sendDataTypes)
-		{
-			// Save datatypes key
-			OMF::setCreatedTypes(key);
-		}
-
-		cerr << "dataTypes for key [" << key << "]" << (sendDataTypes ? " have been sent." : " already sent.") << endl;
 
 		// Add into JSON string the OMF transformed Reading data
 		jsonData << OMFData(*elem).OMFdataVal() << (elem < (readings.end() -1 ) ? ", " : "");
@@ -298,6 +259,56 @@ uint32_t OMF::sendToServer(const vector<Reading>& readings,
 
 	// Return number of sen t readings to the caller
 	return readings.size();
+}
+
+/**
+ * Send a single reading to the PI Server
+ *
+ * @param reading             A reading to send
+ * @return                    != on success, 0 otherwise
+ */
+uint32_t OMF::sendToServer(const Reading& reading,
+			   bool skipSentDataTypes)
+{
+	return OMF::sendToServer(&reading, skipSentDataTypes);
+}
+
+/**
+ * Send a single reading pointer to the PI Server
+ *
+ * @param reading             A reading pointer to send
+ * @return                    != on success, 0 otherwise
+ */
+uint32_t OMF::sendToServer(const Reading* reading,
+			   bool skipSentDataTypes)
+{
+	ostringstream jsonData;
+	jsonData << "[";
+
+	if (!OMF::handleDataTypes(*reading, skipSentDataTypes))
+	{
+		// Failure
+		return 0;
+	}
+
+	// Add into JSON string the OMF transformed Reading data
+	jsonData << OMFData(*reading).OMFdataVal();
+	jsonData << "]";
+
+	// Build headers for Readings data
+	vector<pair<string, string>> readingData = OMF::createMessageHeader("Data");
+
+	// Build an HTTPS POST with 'readingData headers and 'allReadings' JSON payload
+	// Then get HTTPS POST ret code and return 0 to client on error
+	int res = m_sender.sendRequest("POST", m_path, readingData, jsonData.str());
+
+	if (res != 200 && res != 204)
+	{
+		return 0;
+	}
+
+	// Return number of sent readings to the caller
+	return 1;
 }
 
 /**
@@ -495,7 +506,7 @@ const std::string OMF::createLinkData(const Reading& reading) const
  * Set the tag ID_XYZ_typename_sensor|typename_measurement
  *
  * @param assetName    The assetName
- * @param tagName    The tagName to append
+ * @param tagName      The tagName to append
  * @param data         The string to append result tag
  */
 void OMF::setAssetTypeTag(const string& assetName,
@@ -507,26 +518,78 @@ void OMF::setAssetTypeTag(const string& assetName,
 }
 
 /**
- * Add the assetName + m_typeId as key into a map
+ * Handles the OMF data types for the current Reading row
+ * DataTypoes are created and sent only once per assetName + typeId
+ * if skipSending is true
+ *
+ * @param row            The current Reading row with data
+ * @param skipSending    Send once or always the data types
+ * @return               True if data types have been sent or already sent.
+ *                       False if the sending has failed.
+ */ 
+bool OMF::handleDataTypes(const Reading& row,
+			  bool skipSending)
+{
+	// Create the key for dataTypes sending once
+	const string key(skipSending ?  (row.getAssetName() + m_typeId) : "");
+
+	// Check whether to create and send Data Types
+	bool sendTypes = (skipSending == true) ?
+			  // Send if not already sent
+			  !OMF::getCreatedTypes(key) :
+			  // Always send types
+			  true;
+
+	// Handle the data types of the current reading
+	if (sendTypes && !OMF::sendDataTypes(row))
+	{
+		// Failure
+		return false;
+	}
+
+	// We have sent types, we might save this.
+	if (skipSending && sendTypes)
+	{
+		// Save datatypes key
+		OMF::setCreatedTypes(key);
+	}
+
+	// Just for dubug right now
+	if (skipSending)
+	{
+		cerr << "dataTypes for key [" << key << "]" << \
+			(sendTypes ? " have been sent." : " already sent.") << endl;
+	}
+	else
+	{
+		cerr << "dataTypes for typeId [" << m_typeId << "] have been sent." << endl;
+	}
+
+	// Success
+	return true;
+}
+
+/**
+ * Add the key (assetName + m_typeId) into a map
  * That key is checked by getCreatedTypes in order
  * to send dataTypes only once
  *
- * @param assetName    The assetName found in the Reading row
- * @return             Always true
+ * @param key    The data tyepe key (assetName + m_typeId) from the Reading row
+ * @return       Always true
  */
-bool OMF::setCreatedTypes(string& assetName)
+bool OMF::setCreatedTypes(const string& key)
 {
-	return m_createdTypes[string(m_typeId) + assetName] = true;
+	return m_createdTypes[key] = true;
 }
 
 /**
  * Get from createdTypes map the key (assetName + m_typeId)
  *
- * @param assetName    The assetName found in the Reading row
- * @return             True is the key exists (aka dataTypes already sent)
- *                     or false if not found.
+ * @param key    The data tyepe key (assetName + m_typeId) from the Reading row
+ * @return       True is the key exists (aka dataTypes already sent)
+ *               or false if not found.
  */
-bool OMF::getCreatedTypes(string& assetName)
+bool OMF::getCreatedTypes(const string& key)
 {
-	return m_createdTypes[string(m_typeId) + assetName];
+	return m_createdTypes[key];
 }
