@@ -63,6 +63,7 @@ OMF::OMF(HttpSender& sender,
 	 m_producerToken(token),
          m_sender(sender)
 {
+	m_lastError = false;
 }
 
 // Destructor
@@ -173,9 +174,22 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 						    elem != readings.end();
 						    ++elem)
 	{
-		if (!OMF::handleDataTypes(**elem, skipSentDataTypes))
+		bool sendDataTypes;
+
+		// Create the key for dataTypes sending once
+		string key((**elem).getAssetName() + m_typeId);
+
+		sendDataTypes = (m_lastError == false && skipSentDataTypes == true) ?
+				 // Send if not already sent
+				 !OMF::getCreatedTypes(key) :
+				 // Always send types
+				 true;
+
+		// Handle the data types of the current reading
+		if (sendDataTypes && !OMF::handleDataTypes(**elem, skipSentDataTypes))
 		{
 			// Failure
+			m_lastError = true;
 			return 0;
 		}
 
@@ -201,8 +215,12 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 	int res = m_sender.sendRequest("POST", m_path, readingData, jsonData.str());
 	if (res != 200 && res != 204)
 	{
+		cerr << "RetCode: " << res << endl;
+		m_lastError = true;
 		return 0;
 	}
+
+	m_lastError = false;
 
 	// Return number of sen t readings to the caller
 	return readings.size();
@@ -232,9 +250,22 @@ uint32_t OMF::sendToServer(const vector<Reading>& readings,
 						    elem != readings.end();
 						    ++elem)
 	{
-		if (!OMF::handleDataTypes(*elem, skipSentDataTypes))
+		bool sendDataTypes;
+
+		// Create the key for dataTypes sending once
+		string key((*elem).getAssetName() + m_typeId);
+
+		sendDataTypes = (m_lastError == false && skipSentDataTypes == true) ?
+				 // Send if not already sent
+				 !OMF::getCreatedTypes(key) :
+				 // Always send types
+				 true;
+
+		// Handle the data types of the current reading
+		if (sendDataTypes && !OMF::handleDataTypes(*elem, skipSentDataTypes))
 		{
 			// Failure
+			m_lastError = true;
 			return 0;
 		}
 
@@ -254,8 +285,11 @@ uint32_t OMF::sendToServer(const vector<Reading>& readings,
 	if (res != 200 && res != 204)
 	{
 		cerr << "Server status code " << res << " for sent reading data" << endl;
+		m_lastError = true;
 		return 0;
 	}
+
+	m_lastError = false;
 
 	// Return number of sen t readings to the caller
 	return readings.size();

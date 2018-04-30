@@ -64,6 +64,7 @@ int SimpleHttps::sendRequest(const string& method,
 	{
 		auto res = m_sender->request(method, path, payload, header);
 		retCode = res->status_code;
+		//cerr << "Server reply: " << res->content.string() << endl;
 	} catch (exception& ex) {
 		cerr << "Failed to send data: " << ex.what() << endl;
 		return 0;
