@@ -10,9 +10,18 @@
 
 #include <iostream>
 #include <string>
+#include <typeinfo>
 #include <omf.h>
+#include <stdio.h>
 
 using namespace std;
+
+static const string omfTypes[] = { OMF_TYPE_STRING,
+				    OMF_TYPE_INTEGER,
+				    OMF_TYPE_FLOAT };
+
+static string http_post("POST");
+static string ingress_url("/ingress/messages");
 
 /**
  * OMFData constructor
@@ -24,13 +33,14 @@ OMFData::OMFData(const Reading& reading)
 	m_value.append(reading.getAssetName() + "\", \"values\": [{");
 
 	// Get reading data
-	const vector<Datapoint*> data = reading.getReadingData();
+	const vector<Datapoint*>& data = reading.getReadingData();
 
 	/**
 	 * This loop creates:
 	 * "dataName": {"type": "dataType"},
 	 */
-	for (vector<Datapoint*>::const_iterator it = data.begin(); it != data.end(); ++it)
+	for (vector<Datapoint *>::const_iterator it = data.begin();
+			it != data.end(); ++it)
 	{
 		// Add datapoint Name
 		m_value.append("\"" + (*it)->getName() + "\": " + (*it)->getData().toString());
@@ -44,9 +54,9 @@ OMFData::OMFData(const Reading& reading)
 }
 
 /**
- * Return the JSOIN data in m_value
+ * Return the JSON data in m_value
  */
-const string OMFData::OMFdataVal() const
+const string& OMFData::OMFdataVal() const
 {
 	return m_value;
 }
@@ -55,15 +65,12 @@ const string OMFData::OMFdataVal() const
  * OMF constructor
  */
 OMF::OMF(HttpSender& sender,
-	 const string& path,
 	 const string& id,
 	 const string& token) :
-	 m_path(path),
-	 m_typeId(id),
+	 m_tokenId(id),
 	 m_producerToken(token),
          m_sender(sender)
 {
-	m_lastError = false;
 }
 
 // Destructor
@@ -72,92 +79,86 @@ OMF::~OMF()
 }
 
 /**
- * Sends all the data type messages for a Reading data row
- *
- * @param row    The current Reading data row
- * @return       True is all data types have been sent (HTTP 200/204 OK)
- *               False when first error occurs.
+ * Creates and send data type messages for a Reading data
  */
-bool OMF::sendDataTypes(const Reading& row) const
+int OMF::handleTypes(const Reading& row) const
 {
-	int res;
+int res;
+vector<pair<string, string> > headers;
 
 	// Create header for Type
-	vector<pair<string, string>> resType = OMF::createMessageHeader("Type");
+	OMF::createMessageHeader("Type", headers);
 	// Create data for Type message	
-	string typeData = OMF::createTypeData(row);
+	string payload = OMF::createTypeData(row);
 
 	// Build an HTTPS POST with 'resType' headers
 	// and 'typeData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	res = m_sender.sendRequest("POST", m_path, resType, typeData);
+	// TODO: save typeData and send it once
+	res = m_sender.sendRequest(http_post, ingress_url, headers, payload);
 	if (res != 200 && res != 204)
 	{
-		cerr << "Server status code " << res << " for dataType message 'Type'" << endl;
-		return false;
+		return 0;
 	}
 
 	// Create header for Container
-	vector<pair<string, string>> resContainer = OMF::createMessageHeader("Container");
+	OMF::createMessageHeader("Container", headers);
 	// Create data for Container message	
-	string typeContainer = OMF::createContainerData(row);
+	payload = OMF::createContainerData(row);
 
 	// Build an HTTPS POST with 'resContainer' headers
 	// and 'typeContainer' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	res = m_sender.sendRequest("POST", m_path, resContainer, typeContainer);
+	// TODO: save typeContainer and send it once
+	res = m_sender.sendRequest(http_post, ingress_url, headers, payload);
 	if (res != 200 && res != 204)
 	{
-		cerr << "Server status code " << res << " for dataType message 'Container'" << endl;
-		return false;
+		return 0;
 	}
 
 	// Create header for Static data
-	vector<pair<string, string>> resStaticData = OMF::createMessageHeader("Data");
+	OMF::createMessageHeader("Data", headers);
 	// Create data for Static Data message	
-	string typeStaticData = OMF::createStaticData(row);
+	payload  = OMF::createStaticData(row);
 
 	// Build an HTTPS POST with 'resStaticData' headers
 	// and 'typeStaticData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	res = m_sender.sendRequest("POST", m_path, resStaticData, typeStaticData);
+	// TODO: save typeStaticData and send it once
+	res = m_sender.sendRequest(http_post, ingress_url, headers, payload);
 	if (res != 200 && res != 204)
 	{
-		cerr << "Server status code " << res << " for dataType message 'Data' (static)" << endl;
-		return false;
+		return 0;
 	}
 
 	// Create header for Link data
-	vector<pair<string, string>> resLinkData = OMF::createMessageHeader("Data");
+	OMF::createMessageHeader("Data", headers);
 	// Create data for Static Data message	
-	string typeLinkData = OMF::createLinkData(row);
+	payload = OMF::createLinkData(row);
 
 	// Build an HTTPS POST with 'resLinkData' headers
 	// and 'typeLinkData' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	res = m_sender.sendRequest("POST", m_path, resLinkData, typeLinkData);
+	// TODO: save typeLinkData and send it once
+	res = m_sender.sendRequest(http_post, ingress_url, headers, payload);
 
 	if (res != 200 && res != 204)
 	{
-		cerr << "Server status code " << res << " for dataType message 'Data' (lynk)" << endl;
-		return false;
+		return 0;
 	}
 	else
 	{
-		// All data types sent: success
-		return true;
+		return 1;
 	}
 }
 
 /**
  * Send all the readings to the PI Server
  *
- * @param readings            A vector of readings data pointers
- * @param skipSendDataTypes   Send datatypes only once (default is true)
- * @return                    != on success, 0 otherwise
+ * @param readings    A vector of readings data pointers
+ * @return            != on success, 0 otherwise
  */
-uint32_t OMF::sendToServer(const vector<Reading *> readings,
-			   bool skipSentDataTypes)
+uint32_t OMF::sendToServer(const vector<Reading *> readings)
 {
 	/*
 	 * Iterate over readings:
@@ -170,31 +171,17 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 	jsonData << "[";
 
 	// Fecth Reading* data
-	for (vector<Reading *>::const_iterator elem = readings.begin();
-						    elem != readings.end();
-						    ++elem)
+	for (vector<Reading *>::const_iterator it = readings.begin();
+			it != readings.end(); ++it)
 	{
-		bool sendDataTypes;
-
-		// Create the key for dataTypes sending once
-		string key((**elem).getAssetName() + m_typeId);
-
-		sendDataTypes = (m_lastError == false && skipSentDataTypes == true) ?
-				 // Send if not already sent
-				 !OMF::getCreatedTypes(key) :
-				 // Always send types
-				 true;
-
-		// Handle the data types of the current reading
-		if (sendDataTypes && !OMF::handleDataTypes(**elem, skipSentDataTypes))
+		// The current reading
+		if (!OMF::handleTypes(**it))
 		{
-			// Failure
-			m_lastError = true;
 			return 0;
 		}
 
 		// Add into JSON string the OMF transformed Reading data
-		jsonData << OMFData(**elem).OMFdataVal() << (elem < (readings.end() -1 ) ? ", " : "");
+		jsonData << *(OMFData(**it).OMFdataPtr()) << (it != (readings.end() -1 ) ? ", " : "");
 	}
 
 	jsonData << "]";
@@ -207,20 +194,17 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 	 */
 
 	// Create header for Readings data
-	vector<pair<string, string>> readingData = OMF::createMessageHeader("Data");
+	vector<pair<string, string> > readingData;
+	OMF::createMessageHeader("Data", readingData);
 
 	// Build an HTTPS POST with 'redingData headers
 	// and 'allReadings' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	int res = m_sender.sendRequest("POST", m_path, readingData, jsonData.str());
+	int res = m_sender.sendRequest(http_post, ingress_url, readingData, jsonData.str());
 	if (res != 200 && res != 204)
 	{
-		cerr << "RetCode: " << res << endl;
-		m_lastError = true;
 		return 0;
 	}
-
-	m_lastError = false;
 
 	// Return number of sen t readings to the caller
 	return readings.size();
@@ -229,112 +213,77 @@ uint32_t OMF::sendToServer(const vector<Reading *> readings,
 /**
  * Send all the readings to the PI Server
  *
- * @param readings            A vector of readings data
- * @param skipSendDataTypes   Send datatypes only once (default is true)
- * @return                    != on success, 0 otherwise
+ * @param readings    A vector of readings data
+ * @return            != on success, 0 otherwise
  */
-uint32_t OMF::sendToServer(const vector<Reading>& readings,
-			   bool skipSentDataTypes)
+uint32_t OMF::sendToServer(const vector<Reading>& readings)
 {
 	/*
 	 * Iterate over readings:
 	 * - Send/cache Types
 	 * - transform a reading to OMF format
-	 * - add OMF data to new vector
+	 * - add OMND data to new vector
 	 */
 	ostringstream jsonData;
 	jsonData << "[";
 
 	// Fecth Reading data
-	for (vector<Reading>::const_iterator elem = readings.begin();
-						    elem != readings.end();
-						    ++elem)
+	for (vector<Reading>::const_iterator elem = readings.begin(); elem != readings.end(); ++elem)
 	{
-		bool sendDataTypes;
-
-		// Create the key for dataTypes sending once
-		string key((*elem).getAssetName() + m_typeId);
-
-		sendDataTypes = (m_lastError == false && skipSentDataTypes == true) ?
-				 // Send if not already sent
-				 !OMF::getCreatedTypes(key) :
-				 // Always send types
-				 true;
-
-		// Handle the data types of the current reading
-		if (sendDataTypes && !OMF::handleDataTypes(*elem, skipSentDataTypes))
+		// Handle the current reading
+		if (!OMF::handleTypes(*elem))
 		{
-			// Failure
-			m_lastError = true;
 			return 0;
 		}
 
 		// Add into JSON string the OMF transformed Reading data
-		jsonData << OMFData(*elem).OMFdataVal() << (elem < (readings.end() -1 ) ? ", " : "");
+		jsonData << OMFData(*elem).OMFdataVal() << (elem != (readings.end() -1 ) ? ", " : "");
 	}
 
 	jsonData << "]";
 
 	// Build headers for Readings data
-	vector<pair<string, string>> readingData = OMF::createMessageHeader("Data");
+	vector<pair<string, string> > readingData;
+	OMF::createMessageHeader("Data", readingData);
 
 	// Build an HTTPS POST with 'readingData headers and 'allReadings' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	int res = m_sender.sendRequest("POST", m_path, readingData, jsonData.str());
+	int res = m_sender.sendRequest(http_post, ingress_url, readingData, jsonData.str());
 
 	if (res != 200 && res != 204)
 	{
-		cerr << "Server status code " << res << " for sent reading data" << endl;
-		m_lastError = true;
 		return 0;
 	}
 
-	m_lastError = false;
-
-	// Return number of sen t readings to the caller
+	// Return number of sent readings to the caller
 	return readings.size();
 }
 
 /**
  * Send a single reading to the PI Server
  *
- * @param reading             A reading to send
- * @return                    != on success, 0 otherwise
+ * @param reading     A reading to send
+ * @return            != on success, 0 otherwise
  */
-uint32_t OMF::sendToServer(const Reading& reading,
-			   bool skipSentDataTypes)
-{
-	return OMF::sendToServer(&reading, skipSentDataTypes);
-}
-
-/**
- * Send a single reading pointer to the PI Server
- *
- * @param reading             A reading pointer to send
- * @return                    != on success, 0 otherwise
- */
-uint32_t OMF::sendToServer(const Reading* reading,
-			   bool skipSentDataTypes)
+uint32_t OMF::sendToServer(const Reading& reading)
 {
 	ostringstream jsonData;
 	jsonData << "[";
-
-	if (!OMF::handleDataTypes(*reading, skipSentDataTypes))
+	if (!OMF::handleTypes(reading))
 	{
-		// Failure
 		return 0;
 	}
-
 	// Add into JSON string the OMF transformed Reading data
-	jsonData << OMFData(*reading).OMFdataVal();
+	jsonData << OMFData(reading).OMFdataVal();
 	jsonData << "]";
 
 	// Build headers for Readings data
-	vector<pair<string, string>> readingData = OMF::createMessageHeader("Data");
+	vector<pair<string, string> > headers;
+	OMF::createMessageHeader("Data", headers);
 
 	// Build an HTTPS POST with 'readingData headers and 'allReadings' JSON payload
 	// Then get HTTPS POST ret code and return 0 to client on error
-	int res = m_sender.sendRequest("POST", m_path, readingData, jsonData.str());
+	int res = m_sender.sendRequest(http_post, ingress_url, headers, jsonData.str());
 
 	if (res != 200 && res != 204)
 	{
@@ -348,20 +297,19 @@ uint32_t OMF::sendToServer(const Reading* reading,
 /**
  * Creates a vector of HTTP header to be sent to Server
  *
- * @param type    The message type ('Type', 'Container', 'Data')
- * @return        A vector of HTTP Header string pairs
+ * NB Clears the vector it is supplied with
+ *
+ * @param type   The message type ('Type', 'Container', 'Data')
+ * @param res	 Vector of HTTP Header string pairs
  */
-const vector<pair<string, string>> OMF::createMessageHeader(const std::string& type) const
+void OMF::createMessageHeader(const std::string& type, vector<pair<string, string> >&  res) const
 {
-	vector<pair<string, string>> res;
-
+	res.clear();
 	res.push_back(pair<string, string>("messagetype", type));
 	res.push_back(pair<string, string>("producertoken", m_producerToken));
 	res.push_back(pair<string, string>("omfversion", "1.0"));
 	res.push_back(pair<string, string>("messageformat", "JSON"));
 	res.push_back(pair<string, string>("action", "create"));
-
-	return  res; 
 }
 
 /**
@@ -403,7 +351,8 @@ const std::string OMF::createTypeData(const Reading& reading) const
 	 * This loop creates:
 	 * "dataName": {"type": "dataType"},
 	 */
-	for (vector<Datapoint*>::const_iterator it = data.begin(); it != data.end(); ++it)
+	for (vector<Datapoint *>::const_iterator it = data.begin();
+			it != data.end(); ++it)
 	{
 		// Add datapoint Name
 		tData.append("\"" + (*it)->getName() + "\"");
@@ -540,7 +489,7 @@ const std::string OMF::createLinkData(const Reading& reading) const
  * Set the tag ID_XYZ_typename_sensor|typename_measurement
  *
  * @param assetName    The assetName
- * @param tagName      The tagName to append
+ * @param tagName    The tagName to append
  * @param data         The string to append result tag
  */
 void OMF::setAssetTypeTag(const string& assetName,
@@ -548,82 +497,5 @@ void OMF::setAssetTypeTag(const string& assetName,
 			  string& data) const
 {
 	// Add type_id + '_' + asset_name + '_' + tagName'
-	data.append(m_typeId + "_" + assetName +  "_" + tagName);
-}
-
-/**
- * Handles the OMF data types for the current Reading row
- * DataTypoes are created and sent only once per assetName + typeId
- * if skipSending is true
- *
- * @param row            The current Reading row with data
- * @param skipSending    Send once or always the data types
- * @return               True if data types have been sent or already sent.
- *                       False if the sending has failed.
- */ 
-bool OMF::handleDataTypes(const Reading& row,
-			  bool skipSending)
-{
-	// Create the key for dataTypes sending once
-	const string key(skipSending ?  (row.getAssetName() + m_typeId) : "");
-
-	// Check whether to create and send Data Types
-	bool sendTypes = (skipSending == true) ?
-			  // Send if not already sent
-			  !OMF::getCreatedTypes(key) :
-			  // Always send types
-			  true;
-
-	// Handle the data types of the current reading
-	if (sendTypes && !OMF::sendDataTypes(row))
-	{
-		// Failure
-		return false;
-	}
-
-	// We have sent types, we might save this.
-	if (skipSending && sendTypes)
-	{
-		// Save datatypes key
-		OMF::setCreatedTypes(key);
-	}
-
-	// Just for dubug right now
-	if (skipSending)
-	{
-		cerr << "dataTypes for key [" << key << "]" << \
-			(sendTypes ? " have been sent." : " already sent.") << endl;
-	}
-	else
-	{
-		cerr << "dataTypes for typeId [" << m_typeId << "] have been sent." << endl;
-	}
-
-	// Success
-	return true;
-}
-
-/**
- * Add the key (assetName + m_typeId) into a map
- * That key is checked by getCreatedTypes in order
- * to send dataTypes only once
- *
- * @param key    The data tyepe key (assetName + m_typeId) from the Reading row
- * @return       Always true
- */
-bool OMF::setCreatedTypes(const string& key)
-{
-	return m_createdTypes[key] = true;
-}
-
-/**
- * Get from createdTypes map the key (assetName + m_typeId)
- *
- * @param key    The data tyepe key (assetName + m_typeId) from the Reading row
- * @return       True is the key exists (aka dataTypes already sent)
- *               or false if not found.
- */
-bool OMF::getCreatedTypes(const string& key)
-{
-	return m_createdTypes[key];
+	data.append(m_tokenId + "_" + assetName +  "_" + tagName);
 }

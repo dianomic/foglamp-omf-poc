@@ -7,11 +7,10 @@
  *
  * Released under the Apache 2.0 Licence
  *
- * Author: Massimiliano Pinto
+ * Author: Massimiliano Pinto, Mark Riddoch
  */
 #include <string>
 #include <vector>
-#include <map>
 #include <reading.h>
 #include <http_sender.h>
 
@@ -27,44 +26,32 @@ class OMF
         public:
 		/**
 		 * Constructor:
-		 * pass server URL path, OMF_type_id and producerToken.
+		 * pass server URL, OMF_type_id and producerToken.
 		 */
 		OMF(HttpSender& sender,
-                    const std::string& path,
 		    const std::string& typeId,
 		    const std::string& producerToken);
-
-		// Destructor
-		~OMF();
 
 		/**
 		 * Send data to PI Server passing a vector of readings.
 		 *
 		 * Data sending is composed by a few phases
-		 * handled by private methods.
-		 *
-		 * Note: DataTypes are sent only once by using
-		 * an in memory key map, being the key = assetName + typeId.
-		 * Passing false to skipSentDataTypes changes the logic.
+		 * handled by private methods:
 		 *
 		 * Returns the number of processed readings.
 		 */
 
 		// Method with vector of readings
-		uint32_t sendToServer(const std::vector<Reading>& readings,
-				      bool skipSentDataTypes = true);
+		uint32_t sendToServer(const std::vector<Reading>& readings);
 
 		// Method with vector of reading pointers
-		uint32_t sendToServer(const std::vector<Reading *> readings,
-				      bool skipSentDataTypes = true);
+		uint32_t sendToServer(const std::vector<Reading *> readings);
 
 		// Send a single reading
-		uint32_t sendToServer(const Reading& reading,
-				      bool skipSentDataTypes = true);
+		uint32_t sendToServer(const Reading& reading);
 
-		// Send a single reading pointer
-		uint32_t sendToServer(const Reading* reading,
-				      bool skipSentDataTypes = true);
+		// Destructor
+		~OMF();
 
 	private:
 		/**
@@ -72,7 +59,7 @@ class OMF
 		 * messagetype header takes the passed type value:
 		 * 'Type', 'Container', 'Data'
 		 */
-		const std::vector<std::pair<std::string, std::string>> createMessageHeader(const std::string& type) const;
+		void createMessageHeader(const std::string& type, std::vector<std::pair<std::string, std::string> >& header) const;
 
 		// Create data for Type message for current row
 		const std::string createTypeData(const Reading& reading) const;
@@ -97,33 +84,14 @@ class OMF
 		void setAssetTypeTag(const std::string& assetName,
 				     const std::string& tagName,
 				     std::string& data) const;
-
-		// Create the OMF data types if needed
-		bool handleDataTypes(const Reading& row,
-				     bool skipSendingTypes);
-
-		// Send OMF data types
-		bool sendDataTypes(const Reading& row) const;
-
-		// Get saved dataType
-		bool getCreatedTypes(const std::string& key);
-
-		// Set saved dataType
-		bool setCreatedTypes(const std::string& key);
+		// Send or caches OMF data types
+		int handleTypes(const Reading& row) const;
 
         private:
-		const std::string		m_path;
-		const std::string		m_typeId;
-		const std::string		m_producerToken;
-		std::map<std::string, bool>	m_createdTypes;
-
-		// Vector with OMF_TYPES
-		const std::vector<std::string> omfTypes = { OMF_TYPE_STRING,
-							    OMF_TYPE_INTEGER,
-							    OMF_TYPE_FLOAT };
+		const std::string	m_tokenId;
+		const std::string	m_producerToken;
 		// HTTP Sender interface
 		HttpSender&		m_sender;
-		bool			m_lastError;
 };
 
 /**
@@ -134,7 +102,10 @@ class OMFData
 {
 	public:
 		OMFData(const Reading& reading);
-		const std::string OMFdataVal() const;
+		const std::string& OMFdataVal() const;
+		const std::string  *OMFdataPtr() const {
+			return &m_value;
+		}
 	private:
 		std::string	m_value;
 };
