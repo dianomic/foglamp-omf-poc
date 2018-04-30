@@ -26,7 +26,7 @@ class HttpSender
 		HttpSender();
 
 		// Destructor
-		~HttpSender();
+		virtual ~HttpSender();
 
 		/**
 		 * HTTP(S) request: pass method and path, HTTP headers and POST/PUT payload.
