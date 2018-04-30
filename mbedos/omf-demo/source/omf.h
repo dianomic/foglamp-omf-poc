@@ -90,6 +90,7 @@ class OMF
         private:
 		const std::string	m_tokenId;
 		const std::string	m_producerToken;
+		bool			m_first;
 		// HTTP Sender interface
 		HttpSender&		m_sender;
 };
