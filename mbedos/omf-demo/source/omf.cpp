@@ -69,7 +69,8 @@ OMF::OMF(HttpSender& sender,
 	 const string& token) :
 	 m_tokenId(id),
 	 m_producerToken(token),
-         m_sender(sender)
+         m_sender(sender),
+	 m_first(true)
 {
 }
 
@@ -269,9 +270,13 @@ uint32_t OMF::sendToServer(const Reading& reading)
 {
 	ostringstream jsonData;
 	jsonData << "[";
-	if (!OMF::handleTypes(reading))
+	if (m_first)
 	{
-		return 0;
+		if (!OMF::handleTypes(reading))
+		{
+			return 0;
+		}
+		m_first = false;
 	}
 	// Add into JSON string the OMF transformed Reading data
 	jsonData << OMFData(reading).OMFdataVal();

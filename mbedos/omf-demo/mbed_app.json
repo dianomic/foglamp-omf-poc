@@ -5,7 +5,7 @@
             "value": "WIFI_ESP8266"
         },
         "wifi-ssid": {
-            "value": "\"MillEndFibre\""
+            "value": "\"TP-Link-Mark\""
         },
         "wifi-password": {
             "value": "\"Daniel12\""
@@ -29,7 +29,7 @@
     "macros": ["MBEDTLS_USER_CONFIG_FILE=\"mbedtls_entropy_config.h\"",
                "MBEDTLS_TEST_NULL_ENTROPY", "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES",
                "NO_READ_KEYS", "NTP_SERVER_NAME=\"0.pool.ntp.org\"",
-		"PI_SERVER=\"192.168.0.130:5460\"" ],
+		"PI_SERVER=\"192.168.0.200:5460\"" ],
     "target_overrides": {
         "*": {
             "platform.stdio-baud-rate": 115200,

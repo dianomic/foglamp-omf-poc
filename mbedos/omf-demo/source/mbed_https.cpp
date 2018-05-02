@@ -12,6 +12,7 @@
 #include "ntp-client/NTPClient.h"
 #include <mbed_https.h>
 #include <iostream>
+#include <NetworkInterface.h>
 
 #define TRACE_MESSAGES	0
 
@@ -44,71 +45,11 @@ const char SSL_CA_PEM[] =
     "DKqC5JlR3XC321Y9YeRq4VzW9v493kHMB65jUr9TU/Qr6cf9tveCX4XSQRjbgbME\n"
     "HMUfpIBvFSDJ3gyICh3WZlXi/EjJKSZp4A==\n"
     "-----END CERTIFICATE-----\n";
-#if 0
-"-----BEGIN CERTIFICATE-----\n"
-"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\n"
-"1iP0dA==\n"
-"-----END CERTIFICATE-----\n";
-    "-----BEGIN CERTIFICATE-----\n"
-    "MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/\n"
-    "MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\n"
-    "DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow\n"
-    "SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT\n"
-    "GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC\n"
-    "AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF\n"
-    "q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8\n"
-    "SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0\n"
-    "Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA\n"
-    "a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj\n"
-    "/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T\n"
-    "AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG\n"
-    "CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv\n"
-    "bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k\n"
-    "c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw\n"
-    "VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC\n"
-    "ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz\n"
-    "MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu\n"
-    "Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF\n"
-    "AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo\n"
-    "uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/\n"
-    "wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu\n"
-    "X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG\n"
-    "PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6\n"
-    "KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==\n"
-    "-----END CERTIFICATE-----\n";
-#endif
+
 /**
  * Constructor
  */
-MbedHttps::MbedHttps(const string& host_port) : HttpSender(), m_host_port(host_port)
+MbedHttps::MbedHttps(const string& host_port) : HttpSender(), m_socket(0), m_host_port(host_port)
 {
 	m_network = easy_connect(true);
 	if (!m_network)
@@ -123,7 +64,12 @@ MbedHttps::MbedHttps(const string& host_port) : HttpSender(), m_host_port(host_p
 		set_time(timestamp);
 	}
 	else
-		printf("Failed to get time %i\n", timestamp);
+		printf("Failed to get time %lld\n", timestamp);
+printf("1\n");
+	m_host = host_port.substr(0, host_port.find(":"));
+	m_port = atoi(host_port.substr(host_port.find(":") + 1, string::npos).c_str());
+printf("Host %s, Port %d\n", m_host.c_str(), m_port);
+	socketSetup();
 }
 
 /**
@@ -131,6 +77,45 @@ MbedHttps::MbedHttps(const string& host_port) : HttpSender(), m_host_port(host_p
  */
 MbedHttps::~MbedHttps()
 {
+}
+
+void MbedHttps::socketSetup()
+{
+	if (m_socket)
+		delete m_socket;
+	m_socket = new TLSSocket(m_network, m_host.c_str(), m_port, SSL_CA_PEM);
+	m_socket->set_debug(true);
+	if (m_socket->connect() != 0) {
+    		printf("TLS Connect failed %d\n", m_socket->error());
+	}
+}
+
+/**
+ * Check we have a connection to the network
+ */
+void MbedHttps::checkNetwork()
+{
+	if (!m_network)
+	{
+		m_network = easy_connect(true);
+		if (!m_network)
+		{
+			printf("No network\n");
+		}
+		NTPClient ntp(m_network);
+		ntp.set_server(NTP_SERVER_NAME, 123);
+		time_t timestamp = ntp.get_timestamp(25000);
+		if (timestamp > 0)
+		{
+			set_time(timestamp);
+		}
+		else
+			printf("Failed to get time %lld\n", timestamp);
+	}
+	else if (m_network->get_connection_status() == NSAPI_STATUS_DISCONNECTED)
+	{
+		m_network->connect();
+	}
 }
 
 /**
@@ -149,6 +134,7 @@ int MbedHttps::sendRequest(const string& method,
 {
 HttpsRequest *req = 0;
 
+	checkNetwork();
 	if (!m_network)
 	{
 		printf("No network\n");
@@ -159,9 +145,9 @@ HttpsRequest *req = 0;
 	url += m_host_port;
 	url += path;
 	if (method.compare("GET") == 0)
-		req = new HttpsRequest(m_network, SSL_CA_PEM, HTTP_GET, url.c_str());
+		req = new HttpsRequest(m_socket, HTTP_GET, url.c_str());
 	else if (method.compare("POST") == 0)
-		req = new HttpsRequest(m_network, SSL_CA_PEM, HTTP_POST, url.c_str());
+		req = new HttpsRequest(m_socket, HTTP_POST, url.c_str());
 
 	// Add FogLAMP UserAgent
 	// req->set_header("User-Agent", HTTP_SENDER_USER_AGENT);
@@ -187,6 +173,7 @@ HttpsRequest *req = 0;
 		printf("Request Failed %d\n", req->get_error());
 		int err = req->get_error();
 		delete req;
+		socketSetup();
 		return err;
 	}
 #if TRACE_MESSAGES
@@ -194,8 +181,8 @@ HttpsRequest *req = 0;
 	cerr << payload << endl;
 #endif
 
-	delete req;
-
 	int code = res->get_status_code();
+	delete req; // Also deletes the response
+
 	return code;
 }

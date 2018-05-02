@@ -37,9 +37,13 @@ class MbedHttps: public HttpSender
 				const std::vector<std::pair<std::string, std::string> >& headers,
 				const std::string& payload);
 	private:
+		void			checkNetwork();
+		void			socketSetup();
+		TLSSocket		*m_socket;
 		std::string		m_host_port;
 		NetworkInterface	*m_network;
-		
+		std::string		m_host;
+		int			m_port;
 };
 
 #endif
