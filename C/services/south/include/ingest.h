@@ -1,7 +1,7 @@
 #ifndef _INGEST_H
 #define _INGEST_H
 /*
- * FogLAMP reading ingest.
+ * Fledge reading ingest.
  *
  * Copyright (c) 2018 OSisoft, LLC
  *

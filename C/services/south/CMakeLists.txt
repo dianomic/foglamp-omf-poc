@@ -37,7 +37,7 @@ target_link_libraries(south ${DLLIB})
 target_link_libraries(south ${UUIDLIB})
 target_link_libraries(south -lssl -lcrypto)
 
-install(TARGETS south RUNTIME DESTINATION foglamp/services)
+install(TARGETS south RUNTIME DESTINATION fledge/services)
 
 if(MSYS) #TODO: Is MSYS true when MSVC is true?
     target_link_libraries(south ws2_32 wsock32)

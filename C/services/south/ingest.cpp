@@ -1,5 +1,5 @@
 /*
- * FogLAMP readings ingest.
+ * Fledge readings ingest.
  *
  * Copyright (c) 2018 OSisoft, LLC
  *

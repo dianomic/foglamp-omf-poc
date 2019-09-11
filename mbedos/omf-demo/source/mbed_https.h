@@ -1,7 +1,7 @@
 #ifndef _MBED_HTTPS_H
 #define _MBED_HTTPS_H
 /*
- * FogLAMP HTTPS implementation for ARM MbedOS
+ * Fledge HTTPS implementation for ARM MbedOS
  *
  * Copyright (c) 2018 OSisoft, LLC
  *

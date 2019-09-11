@@ -1,5 +1,5 @@
 /*
- * FogLAMP HTTP Sender implementation using the
+ * Fledge HTTP Sender implementation using the
  * ARM MbedOS http library
  *
  * Copyright (c) 2018 OSisoft, LLC
@@ -149,7 +149,7 @@ HttpsRequest *req = 0;
 	else if (method.compare("POST") == 0)
 		req = new HttpsRequest(m_socket, HTTP_POST, url.c_str());
 
-	// Add FogLAMP UserAgent
+	// Add Fledge UserAgent
 	// req->set_header("User-Agent", HTTP_SENDER_USER_AGENT);
 	// Add custom headers
 	vector<pair<string, string> >::const_iterator it;

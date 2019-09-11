@@ -36,7 +36,7 @@ target_link_libraries(omf_demo ${DLLIB})
 target_link_libraries(omf_demo ${UUIDLIB})
 target_link_libraries(omf_demo -lssl -lcrypto)
 
-install(TARGETS omf_demo RUNTIME DESTINATION foglamp/services)
+install(TARGETS omf_demo RUNTIME DESTINATION fledge/services)
 
 if(MSYS) #TODO: Is MSYS true when MSVC is true?
     target_link_libraries(omf_demo ws2_32 wsock32)
